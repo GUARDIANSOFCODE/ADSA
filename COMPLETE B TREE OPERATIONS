@@ -1,0 +1,144 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MIN_DEGREE 3 // Minimum degree (t) for B Tree
+
+// Structure to represent a B Tree node
+typedef struct BTreeNode {
+    int *keys;                 // Array of keys
+    struct BTreeNode **children; // Array of child pointers
+    int numKeys;              // Current number of keys
+    int isLeaf;               // True if leaf node
+} BTreeNode;
+
+// Function to create a new B Tree node
+BTreeNode* createBTreeNode(int isLeaf) {
+    BTreeNode* newNode = (BTreeNode*)malloc(sizeof(BTreeNode));
+    newNode->keys = (int*)malloc((2 * MIN_DEGREE - 1) * sizeof(int));
+    newNode->children = (BTreeNode**)malloc(2 * MIN_DEGREE * sizeof(BTreeNode*));
+    newNode->numKeys = 0;
+    newNode->isLeaf = isLeaf;
+    return newNode;
+}
+
+// Function to split a full child node of a B Tree
+void splitChild(BTreeNode* parent, int index, BTreeNode* child) {
+    BTreeNode* newChild = createBTreeNode(child->isLeaf);
+    newChild->numKeys = MIN_DEGREE - 1;
+
+    // Move the last (t-1) keys of child to newChild
+    for (int i = 0; i < MIN_DEGREE - 1; i++) {
+        newChild->keys[i] = child->keys[i + MIN_DEGREE];
+    }
+
+    // If the child is not a leaf, move the last t children of child
+    if (!child->isLeaf) {
+        for (int i = 0; i < MIN_DEGREE; i++) {
+            newChild->children[i] = child->children[i + MIN_DEGREE];
+        }
+    }
+
+    // Reduce the number of keys in the original child
+    child->numKeys = MIN_DEGREE - 1;
+
+    // Insert the new child into the parent
+    for (int i = parent->numKeys; i >= index + 1; i--) {
+        parent->children[i + 1] = parent->children[i];
+    }
+    parent->children[index + 1] = newChild;
+
+    // Move a key from child to parent
+    for (int i = parent->numKeys - 1; i >= index; i--) {
+        parent->keys[i + 1] = parent->keys[i];
+    }
+    parent->keys[index] = child->keys[MIN_DEGREE - 1];
+    parent->numKeys++;
+}
+
+// Function to insert a new key in the B Tree
+void insertNonFull(BTreeNode* node, int key) {
+    int i = node->numKeys - 1;
+
+    if (node->isLeaf) {
+        // Find location to insert the new key
+        while (i >= 0 && key < node->keys[i]) {
+            node->keys[i + 1] = node->keys[i];
+            i--;
+        }
+        node->keys[i + 1] = key;
+        node->numKeys++;
+    } else {
+        // Find the child which is going to have the new key
+        while (i >= 0 && key < node->keys[i]) {
+            i--;
+        }
+        i++;
+
+        // Check if the found child is full
+        if (node->children[i]->numKeys == (2 * MIN_DEGREE - 1)) {
+            // Split the child if it's full
+            splitChild(node, i, node->children[i]);
+
+            // After splitting, the middle key of child goes up, check which of the two children to recurse
+            if (key > node->keys[i]) {
+                i++;
+            }
+        }
+        insertNonFull(node->children[i], key);
+    }
+}
+
+// Function to insert a new key in the B Tree
+void insertBTree(BTreeNode** root, int key) {
+    BTreeNode* r = *root;
+
+    // If the root node is full, then tree grows in height
+    if (r->numKeys == (2 * MIN_DEGREE - 1)) {
+        BTreeNode* s = createBTreeNode(0); // New root
+        *root = s;
+        s->children[0] = r; // Old root becomes child of new root
+        splitChild(s, 0, r); // Split the old root
+        insertNonFull(s, key); // Insert in the new root
+    } else {
+        insertNonFull(r, key);
+    }
+}
+
+// Function to traverse the B Tree
+void traverseBTree(BTreeNode* node) {
+    if (node != NULL) {
+        for (int i = 0; i < node->numKeys; i++) {
+            // If this is not a leaf, traverse the child before printing the key
+            if (!node->isLeaf) {
+                traverseBTree(node->children[i]);
+            }
+            printf("%d ", node->keys[i]); // Print the key
+        }
+        // Finally, visit the last child
+        if (!node->isLeaf) {
+            traverseBTree(node->children[node->numKeys]);
+        }
+    }
+}
+
+// Driver program to test the above functions
+int main() {
+    BTreeNode* root = createBTreeNode(1); // Create a root node
+
+    // Inserting keys into the B Tree
+    insertBTree(&root, 10);
+    insertBTree(&root, 20);
+    insertBTree(&root, 5);
+    insertBTree(&root, 6);
+    insertBTree(&root, 12);
+    insertBTree(&root, 30);
+    insertBTree(&root, 7);
+    insertBTree(&root, 17);
+
+    // Print the keys in the B Tree
+    printf("Traversal of the B Tree: ");
+    traverseBTree(root);
+    printf("\n");
+
+    return 0;
+}
