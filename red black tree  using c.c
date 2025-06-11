@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+       
 // Define the colors of the nodes
 #define RED 1
 #define BLACK 0
