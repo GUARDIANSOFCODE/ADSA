@@ -17,6 +17,6 @@ int main() {
     // Initialize the dp array with -1 (indicating uncomputed values)
     memset(dp, -1, sizeof(dp));
 
-    printf("Fibonacci(%d) = %d\n", n, fibonacci(n));
+    printf("Fibonacci(%d) = %d\n", n, fibonacci(n));       
     return 0;
 }
