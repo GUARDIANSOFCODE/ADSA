@@ -8,4 +8,4 @@ def factorial_iterative(n):
         result *= stack.pop()  # Pop and multiply
     return result
 
-print(factorial_iterative(4))  # Output: 24
+print(factorial_iterative(4))  # Output: 24     
