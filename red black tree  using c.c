@@ -7,7 +7,7 @@
 
 // Define the structure for the Red-Black Tree nodes
 struct Node {
-    int data;
+    int data;       
     int color;
     struct Node *left, *right, *parent;
 };
