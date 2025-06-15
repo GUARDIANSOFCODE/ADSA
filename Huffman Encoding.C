@@ -9,7 +9,7 @@ struct HuffmanNode {
     char data;
     unsigned freq;
     struct HuffmanNode *left, *right;
-};
+};      
 
 // Min Heap structure
 struct MinHeap {
